@@ -138,6 +138,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
 .player-row:last-child{border-bottom:none}
 .del-btn{background:rgba(220,38,38,.15);color:#f87171;border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px}
 .phase-label{font-size:11px;font-weight:800;color:#d97706;text-transform:uppercase;letter-spacing:1px;margin:18px 0 10px;padding:6px 12px;background:rgba(217,119,6,.1);border-left:3px solid #d97706;border-radius:0 6px 6px 0}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 
 <!-- LOGIN SCREEN -->
@@ -146,19 +147,25 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
   <div class="logo-txt"><h1>🏆 Bolão RASA</h1><p>COPA DO MUNDO 2026</p></div>
 </div>
 
-<div id="loginScreen" class="login-wrap" style="display:none">
+<div id="loginScreen" class="login-wrap">
   <div class="login-card">
     <h2>🔐 Entrar no Bolão</h2>
     <p>Cada participante tem seu acesso exclusivo</p>
     <div id="loginErr" class="err-msg"></div>
-    <div class="lbl">Seu nome</div>
-    <select class="inp" id="loginUser" style="cursor:pointer">
-      <option value="">Selecione seu nome...</option>
-    </select>
-    <div class="lbl">Senha</div>
-    <input class="inp" type="password" id="loginPass" placeholder="Digite sua senha" onkeydown="if(event.key==='Enter')doLogin()"/>
-    <button class="btn-login" onclick="doLogin()">Entrar →</button>
-    <p style="font-size:10px;color:var(--gray);text-align:center;margin-top:14px">Esqueceu a senha? Contate o organizador Rony Rymer</p>
+    <div id="loginLoading" style="text-align:center;padding:20px 0;color:#d97706;font-size:13px">
+      <div style="width:28px;height:28px;border:3px solid #374151;border-top-color:#d97706;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px"></div>
+      Conectando ao servidor...
+    </div>
+    <div id="loginForm" style="display:none">
+      <div class="lbl">Seu nome</div>
+      <select class="inp" id="loginUser" style="cursor:pointer">
+        <option value="">Selecione seu nome...</option>
+      </select>
+      <div class="lbl">Senha</div>
+      <input class="inp" type="password" id="loginPass" placeholder="Digite sua senha" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <button class="btn-login" onclick="doLogin()">Entrar →</button>
+      <p style="font-size:10px;color:var(--gray);text-align:center;margin-top:14px">Esqueceu a senha? Contate o organizador Rony Rymer</p>
+    </div>
   </div>
 </div>
 
@@ -518,9 +525,9 @@ function startFirebaseSync(){
       // Primeira carga: inicializa a tela de login
       _fbReady = true;
       populateLogin();
-      // Mostra a tela de login após carregar
-      document.getElementById('loadingScreen').style.display='none';
-      document.getElementById('loginScreen').style.display='flex';
+      // Esconde loading, mostra formulário
+      document.getElementById('loginLoading').style.display='none';
+      document.getElementById('loginForm').style.display='block';
     } else {
       // Atualizações em tempo real enquanto usuário está logado
       if(currentUser){
@@ -577,6 +584,8 @@ function doLogout(){
   document.getElementById('loginUser').value='';
   document.getElementById('appWrap').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginLoading').style.display='none';
+  document.getElementById('loginForm').style.display='block';
   document.getElementById('loggedName').textContent='';
   // Remove admin tab
   const at=document.getElementById('adminTab');if(at)at.remove();
