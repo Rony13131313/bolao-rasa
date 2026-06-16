@@ -864,15 +864,44 @@ const TOP_SCORERS=[
   'Florian Wirtz (Alemanha)',
 ];
 
+// Prazo limite para palpites especiais: 18/06/2026 às 12:59 (BRT = UTC-3)
+const ESPECIAIS_DEADLINE = new Date('2026-06-18T12:59:00-03:00');
+
+function especialisDeadlinePassed(){
+  return new Date() > ESPECIAIS_DEADLINE;
+}
+
 function renderEspeciais(){
   const div=document.getElementById('especiais-body');
   div.innerHTML='';
   const sp=state.specials[currentUser]||{};
-  const locked=sp.confirmed;
+  const deadlinePassed = especialisDeadlinePassed();
+  const locked = sp.confirmed || deadlinePassed;
   const teamOpts=TEAMS.map(t=>`<option value="${t}">${flag(t)} ${t}</option>`).join('');
   const scorerOpts=TOP_SCORERS.map(s=>`<option value="${s}">⚽ ${s}</option>`).join('');
 
+  // Countdown ou mensagem de prazo
+  let deadlineBanner='';
+  if(!sp.confirmed && !deadlinePassed){
+    const now=new Date();
+    const diff=ESPECIAIS_DEADLINE-now;
+    const dias=Math.floor(diff/86400000);
+    const horas=Math.floor((diff%86400000)/3600000);
+    const mins=Math.floor((diff%3600000)/60000);
+    const tempo=dias>0?`${dias}d ${horas}h ${mins}min`:`${horas}h ${mins}min`;
+    deadlineBanner=`<div style="background:rgba(217,119,6,.12);border:1px solid #d97706;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fde68a;display:flex;align-items:center;gap:8px">
+      <span style="font-size:16px">⏰</span>
+      <span>Prazo para confirmar: <strong>18/06 às 12:59 (BRT)</strong> — faltam <strong>${tempo}</strong></span>
+    </div>`;
+  } else if(deadlinePassed && !sp.confirmed){
+    deadlineBanner=`<div style="background:rgba(220,38,38,.12);border:1px solid #ef4444;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fca5a5;display:flex;align-items:center;gap:8px">
+      <span style="font-size:16px">🔒</span>
+      <span>Prazo encerrado em 18/06 às 12:59. Palpites especiais bloqueados.</span>
+    </div>`;
+  }
+
   div.innerHTML=`
+    ${deadlineBanner}
     <div class="sp-card"><h3>🥇 Campeão — 25 pts</h3>
       <select class="sp-sel" id="sp_ch" ${locked?'disabled':''}><option value="">Selecione a seleção...</option>${teamOpts}</select></div>
     <div class="sp-card"><h3>🥈 Vice-campeão — 15 pts</h3>
@@ -882,9 +911,11 @@ function renderEspeciais(){
     <div class="sp-card"><h3>⚽ Artilheiro — 15 pts</h3>
       <select class="sp-sel" id="sp_ts" ${locked?'disabled':''}><option value="">Selecione o jogador...</option>${scorerOpts}</select>
     </div>
-    ${locked
+    ${sp.confirmed
       ?`<div class="confirmed-badge">🔒 Seus palpites especiais estão confirmados e bloqueados.<br><strong>${sp.champion}</strong> campeã · <strong>${sp.runner}</strong> vice · <strong>${sp.third}</strong> 3° · Art: <strong>${sp.topScorer}</strong></div>`
-      :`<button class="confirm-sp-btn" onclick="confirmEspeciais()">🔒 Confirmar Palpites Especiais (sem edição)</button>`
+      :deadlinePassed
+        ?`<div class="confirmed-badge" style="background:rgba(220,38,38,.1);border-color:#ef4444;color:#fca5a5">🔒 Prazo encerrado — palpites especiais não registrados (0 pts nos bônus)</div>`
+        :`<button class="confirm-sp-btn" onclick="confirmEspeciais()">🔒 Confirmar Palpites Especiais (sem edição)</button>`
     }`;
 
   if(locked){
@@ -896,6 +927,7 @@ function renderEspeciais(){
 }
 
 function confirmEspeciais(){
+  if(especialisDeadlinePassed()){notify('⚠️ Prazo encerrado! Não é mais possível confirmar palpites especiais.',false);return;}
   const ch=document.getElementById('sp_ch').value;
   const ru=document.getElementById('sp_ru').value;
   const th=document.getElementById('sp_th').value;
