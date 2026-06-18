@@ -181,7 +181,9 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
   <div class="tabs" id="tabsBar">
     <div class="tab active" onclick="switchTab('palpites',this)">⚽ Meus Palpites</div>
     <div class="tab" onclick="switchTab('classificacao',this)">🏅 Classificação</div>
+    <div class="tab" onclick="switchTab('obras',this)">🏗️ Por Obra</div>
     <div class="tab" onclick="switchTab('especiais',this)">🥇 Palpites Especiais</div>
+    <div class="tab" onclick="switchTab('premios',this)">💰 Prêmios</div>
     <div class="tab" onclick="switchTab('regras',this)">📋 Regras</div>
   </div>
   <div class="content">
@@ -197,27 +199,78 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
         <tbody id="rank-body"></tbody></table>
       </div>
     </div>
+    <div class="sec" id="sec-obras">
+      <div class="sec-title">🏗️ Classificação por Obra</div>
+      <p style="font-size:11px;color:var(--gray);margin-bottom:14px">Média aritmética de pontos entre os participantes de cada obra</p>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>#</th><th style="text-align:left">Obra</th><th>Participantes</th><th>Média</th></tr></thead>
+        <tbody id="obras-body"></tbody></table>
+      </div>
+    </div>
     <div class="sec" id="sec-especiais">
       <div class="sec-title">Palpites Especiais</div>
       <p style="font-size:11px;color:var(--gray);margin-bottom:14px">⚠️ Confirme apenas uma vez — não pode alterar depois!</p>
       <div id="especiais-body"></div>
     </div>
+    <div class="sec" id="sec-premios">
+      <div style="text-align:center;margin-bottom:18px">
+        <div style="font-size:42px;margin-bottom:4px">🏆💰🎉</div>
+        <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:.5px">PREMIAÇÃO DO BOLÃO</div>
+        <div style="font-size:12px;color:#d97706;font-weight:600;margin-top:2px">Vale a pena se esforçar nos palpites!</div>
+      </div>
+
+      <!-- 1º LUGAR -->
+      <div style="background:linear-gradient(135deg,#92400e,#d97706,#fbbf24);border-radius:16px;padding:3px;margin-bottom:14px;box-shadow:0 8px 24px rgba(217,119,6,.4)">
+        <div style="background:#1a1410;border-radius:14px;padding:20px;text-align:center">
+          <div style="font-size:48px;line-height:1">🥇</div>
+          <div style="font-size:14px;font-weight:700;color:#fde68a;letter-spacing:1px;margin-top:4px">1° LUGAR</div>
+          <div style="font-size:34px;font-weight:900;color:#fff;margin-top:6px;text-shadow:0 2px 8px rgba(251,191,36,.5)">R$ 1.000,00</div>
+        </div>
+      </div>
+
+      <!-- 2º LUGAR -->
+      <div style="background:linear-gradient(135deg,#52525b,#a1a1aa,#e4e4e7);border-radius:16px;padding:3px;margin-bottom:14px;box-shadow:0 6px 18px rgba(161,161,170,.3)">
+        <div style="background:#1a1a1c;border-radius:14px;padding:18px;text-align:center">
+          <div style="font-size:40px;line-height:1">🥈</div>
+          <div style="font-size:13px;font-weight:700;color:#e4e4e7;letter-spacing:1px;margin-top:4px">2° LUGAR</div>
+          <div style="font-size:28px;font-weight:900;color:#fff;margin-top:6px">R$ 300,00</div>
+        </div>
+      </div>
+
+      <!-- 3º LUGAR -->
+      <div style="background:linear-gradient(135deg,#7c2d12,#c2410c,#fb923c);border-radius:16px;padding:3px;margin-bottom:18px;box-shadow:0 6px 18px rgba(194,65,12,.3)">
+        <div style="background:#1a1410;border-radius:14px;padding:16px;text-align:center">
+          <div style="font-size:36px;line-height:1">🥉</div>
+          <div style="font-size:13px;font-weight:700;color:#fdba74;letter-spacing:1px;margin-top:4px">3° LUGAR</div>
+          <div style="font-size:24px;font-weight:900;color:#fff;margin-top:6px">R$ 200,00</div>
+        </div>
+      </div>
+
+      <!-- OBRA VENCEDORA -->
+      <div style="background:linear-gradient(135deg,#0f4c3a,#15803d,#4ade80);border-radius:16px;padding:3px;margin-bottom:18px;box-shadow:0 6px 18px rgba(21,128,61,.35)">
+        <div style="background:#0a1f17;border-radius:14px;padding:18px;text-align:center">
+          <div style="font-size:38px;line-height:1">🏗️🍻</div>
+          <div style="font-size:13px;font-weight:700;color:#bbf7d0;letter-spacing:1px;margin-top:4px">OBRA VENCEDORA</div>
+          <div style="font-size:22px;font-weight:900;color:#fff;margin-top:6px">2 Rodadas de Chopp! 🍺</div>
+          <div style="font-size:10px;color:#86efac;margin-top:4px">A obra com a maior média de pontos vence</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(217,119,6,.12);border:1.5px solid #d97706;border-radius:12px;padding:14px;text-align:center;font-size:12px;color:#fde68a;font-weight:600">
+        🎉 Premiação válida ao final da Copa do Mundo 2026 — boa sorte a todos!
+      </div>
+    </div>
     <div class="sec" id="sec-regras">
       <div class="sec-title">Regulamento</div>
       <div class="rules-card"><h3>⚽ Fase de Grupos</h3>
         <div class="rule-row"><span>Placar exato</span><span class="rpt">10 pts</span></div>
-        <div class="rule-row"><span>Vencedor + diferença de gols certa</span><span class="rpt">6 pts</span></div>
-        <div class="rule-row"><span>Vencedor certo + diferença errada</span><span class="rpt">4 pts</span></div>
-        <div class="rule-row"><span>Empate — placar exato</span><span class="rpt">10 pts</span></div>
-        <div class="rule-row"><span>Empate — placar errado</span><span class="rpt">5 pts</span></div>
+        <div class="rule-row"><span>Acertou vencedor (ou empate), errou o placar</span><span class="rpt">5 pts</span></div>
         <div class="rule-row"><span>Errou ou sem palpite</span><span class="rpt">0 pts</span></div>
       </div>
       <div class="rules-card"><h3>🔥 Mata-Mata (só tempo regular)</h3>
         <div class="rule-row"><span>Placar exato</span><span class="rpt">15 pts</span></div>
-        <div class="rule-row"><span>Vencedor + diferença de gols certa</span><span class="rpt">9 pts</span></div>
-        <div class="rule-row"><span>Vencedor certo + diferença errada</span><span class="rpt">7 pts</span></div>
-        <div class="rule-row"><span>Empate — placar exato</span><span class="rpt">15 pts</span></div>
-        <div class="rule-row"><span>Empate — placar errado</span><span class="rpt">8 pts</span></div>
+        <div class="rule-row"><span>Acertou vencedor (ou empate), errou o placar</span><span class="rpt">8 pts</span></div>
+        <div class="rule-row"><span>Errou ou sem palpite</span><span class="rpt">0 pts</span></div>
       </div>
       <div class="rules-card"><h3>🏆 Palpites Especiais</h3>
         <div class="rule-row"><span>🥇 Campeão correto</span><span class="rpt">25 pts</span></div>
@@ -239,9 +292,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
       <div style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:9px;margin-bottom:12px;font-size:11px;color:#f87171">⚠️ Área restrita ao organizador — Rony Rymer</div>
       <div class="adm-card">
         <h4>👤 Gerenciar Participantes</h4>
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          <input class="adm-inp" id="newPName" placeholder="Nome completo" style="margin:0;flex:1"/>
-          <input class="adm-inp" id="newPPass" placeholder="Senha" style="margin:0;width:130px" type="password"/>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <input class="adm-inp" id="newPName" placeholder="Nome completo" style="margin:0;flex:1;min-width:140px"/>
+          <input class="adm-inp" id="newPPass" placeholder="Senha" style="margin:0;width:120px" type="password"/>
+          <input class="adm-inp" id="newPObra" placeholder="Obra" style="margin:0;width:110px"/>
           <button class="adm-btn" onclick="addPlayer()">+ Add</button>
         </div>
         <div id="adm-players-list"></div>
@@ -480,12 +534,11 @@ const ALL_MATCHES=[
 
 // Senhas definidas aqui — sempre prevalecem sobre Firebase
 const MASTER_PLAYERS={
-  'Rony Rymer':       {pass:'rymer2026',    isAdmin:true},
-  'Bruno Linhares':   {pass:'linhares2026'},
-  'Celso Suckow':     {pass:'suckow2026'},
-  'Clarissa Miranda': {pass:'miranda2026'},
-  'Sandra Mattos':    {pass:'mattos2026'},
+  'Rony Rymer': {pass:'rymer2026', isAdmin:true, obra:'Escritório'},
 };
+
+// Limpeza única: remove esses jogadores e seus palpites antigos do Firebase
+const OLD_PLAYERS_TO_REMOVE = ['Bruno Linhares','Celso Suckow','Clarissa Miranda','Sandra Mattos'];
 
 // ── Estado global ───────────────────────────────────────────────
 let state = {
@@ -511,7 +564,17 @@ function startFirebaseSync(){
     state.players = JSON.parse(JSON.stringify(MASTER_PLAYERS));
     if(data.players){
       Object.entries(data.players).forEach(([name,d])=>{
-        if(!MASTER_PLAYERS[name]) state.players[name]=d;
+        if(!MASTER_PLAYERS[name]){
+          // Limpeza única: remove jogadores antigos que não fazem mais parte do bolão
+          if(OLD_PLAYERS_TO_REMOVE.includes(name)){
+            db.ref(ROOT+'/players/'+name).remove();
+            db.ref(ROOT+'/guesses/'+name).remove();
+            db.ref(ROOT+'/specials/'+name).remove();
+            db.ref(ROOT+'/points/'+name).remove();
+          } else {
+            state.players[name]=d;
+          }
+        }
       });
     }
     state.guesses      = data.guesses      || {};
@@ -520,6 +583,12 @@ function startFirebaseSync(){
     state.finalResults = data.finalResults || {champion:'',runner:'',third:'',topScorer:''};
     state.points       = data.points       || {};
     state.koTeams      = data.koTeams      || {};
+    // Remove guesses/specials/points órfãos dos jogadores antigos do estado local
+    OLD_PLAYERS_TO_REMOVE.forEach(name=>{
+      delete state.guesses[name];
+      delete state.specials[name];
+      delete state.points[name];
+    });
 
     if(!_fbReady){
       // Primeira carga: inicializa a tela de login
@@ -533,6 +602,7 @@ function startFirebaseSync(){
       if(currentUser){
         renderMatches();
         if(document.getElementById('sec-classificacao').classList.contains('active')) renderRanking();
+        if(document.getElementById('sec-obras')&&document.getElementById('sec-obras').classList.contains('active')) renderObrasRanking();
         if(document.getElementById('sec-admin')&&document.getElementById('sec-admin').classList.contains('active')){
           renderAdmPlayers(); populateAdmSelects(); renderKoManager();
         }
@@ -598,6 +668,7 @@ function switchTab(name,el){
   if(el)el.classList.add('active');
   document.getElementById('sec-'+name).classList.add('active');
   if(name==='classificacao')renderRanking();
+  if(name==='obras')renderObrasRanking();
   if(name==='especiais')renderEspeciais();
   if(name==='admin'){renderAdmPlayers();populateAdmSelects();}
 }
@@ -622,17 +693,12 @@ function scoreGuess(g,r,ph){
   const exact=g1===r1&&g2===r2;
   const gD=g1===g2,rD=r1===r2;
   const cw=(gD&&rD)||(g1>g2&&r1>r2)||(g2>g1&&r2>r1);
-  const gDiff=Math.abs(g1-g2),rDiff=Math.abs(r1-r2);
   if(ko){
     if(exact)return 15;
-    if(gD&&rD)return 8;
-    if(cw&&gDiff===rDiff)return 9;
-    if(cw)return 7;
+    if(cw)return 8;
   }else{
     if(exact)return 10;
-    if(gD&&rD)return 5;
-    if(cw&&gDiff===rDiff)return 6;
-    if(cw)return 4;
+    if(cw)return 5;
   }
   return 0;
 }
@@ -833,6 +899,37 @@ function renderRanking(){
   });
 }
 
+function renderObrasRanking(){
+  calcPts();
+  const body=document.getElementById('obras-body');
+  if(!body)return;
+  body.innerHTML='';
+  // Agrupa participantes por obra (exclui admin)
+  const obraGroups={};
+  Object.keys(state.players).forEach(p=>{
+    if(state.players[p].isAdmin)return;
+    const obra=state.players[p].obra||'Sem obra';
+    if(!obraGroups[obra])obraGroups[obra]=[];
+    obraGroups[obra].push(p);
+  });
+  // Calcula média por obra
+  const obraStats=Object.entries(obraGroups).map(([obra,members])=>{
+    const total=members.reduce((sum,p)=>sum+(state.points[p]?.total||0),0);
+    const media=members.length?total/members.length:0;
+    return {obra,members,media};
+  });
+  obraStats.sort((a,b)=>b.media-a.media);
+  const medals=['🥇','🥈','🥉'];
+  const medalClass=['medal-1','medal-2','medal-3'];
+  obraStats.forEach((o,i)=>{
+    const tr=document.createElement('tr');
+    const medal=medals[i]||(i+1);
+    const mc=medalClass[i]||'';
+    tr.innerHTML=`<td class="${mc}">${medal}</td><td>${o.obra}</td><td style="color:rgba(255,255,255,.6);font-size:11px">${o.members.join(', ')}</td><td><span class="pts-pill">${o.media.toFixed(1)}</span></td>`;
+    body.appendChild(tr);
+  });
+}
+
 const TOP_SCORERS=[
   'Kylian Mbappé (França)',
   'Harry Kane (Inglaterra)',
@@ -864,8 +961,8 @@ const TOP_SCORERS=[
   'Florian Wirtz (Alemanha)',
 ];
 
-// Prazo limite para palpites especiais: 18/06/2026 às 12:59 (BRT = UTC-3)
-const ESPECIAIS_DEADLINE = new Date('2026-06-18T12:59:00-03:00');
+// Prazo limite para palpites especiais: 19/06/2026 às 16:00 (horário do 1º jogo do dia — EUA x Austrália)
+const ESPECIAIS_DEADLINE = new Date('2026-06-19T16:00:00-03:00');
 
 function especialisDeadlinePassed(){
   return new Date() > ESPECIAIS_DEADLINE;
@@ -891,12 +988,12 @@ function renderEspeciais(){
     const tempo=dias>0?`${dias}d ${horas}h ${mins}min`:`${horas}h ${mins}min`;
     deadlineBanner=`<div style="background:rgba(217,119,6,.12);border:1px solid #d97706;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fde68a;display:flex;align-items:center;gap:8px">
       <span style="font-size:16px">⏰</span>
-      <span>Prazo para confirmar: <strong>18/06 às 12:59 (BRT)</strong> — faltam <strong>${tempo}</strong></span>
+      <span>Prazo para confirmar: <strong>19/06 às 16:00 (BRT)</strong> — faltam <strong>${tempo}</strong></span>
     </div>`;
   } else if(deadlinePassed && !sp.confirmed){
     deadlineBanner=`<div style="background:rgba(220,38,38,.12);border:1px solid #ef4444;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fca5a5;display:flex;align-items:center;gap:8px">
       <span style="font-size:16px">🔒</span>
-      <span>Prazo encerrado em 18/06 às 12:59. Palpites especiais bloqueados.</span>
+      <span>Prazo encerrado em 19/06 às 16:00. Palpites especiais bloqueados.</span>
     </div>`;
   }
 
@@ -948,8 +1045,9 @@ function renderAdmPlayers(){
     const row=document.createElement('div');
     row.className='player-row';
     const pts=state.points[p]||{total:0};
+    const obra=state.players[p].obra||'—';
     row.innerHTML=`<span>${p} ${state.players[p].isAdmin?'<span style="font-size:9px;background:#d97706;color:#111;border-radius:4px;padding:1px 5px">ADMIN</span>':''}</span>
-      <span style="font-size:11px;color:var(--gray)">Senha: <strong style="color:#fff">${state.players[p].pass}</strong> · ${pts.total}pts</span>
+      <span style="font-size:11px;color:var(--gray)">Obra: <strong style="color:#fff">${obra}</strong> · Senha: <strong style="color:#fff">${state.players[p].pass}</strong> · ${pts.total}pts</span>
       ${!state.players[p].isAdmin?`<button class="del-btn" onclick="delPlayer('${p}')">Remover</button>`:'<span></span>'}`;
     div.appendChild(row);
   });
@@ -958,14 +1056,16 @@ function renderAdmPlayers(){
 function addPlayer(){
   const name=document.getElementById('newPName').value.trim();
   const pass=document.getElementById('newPPass').value.trim();
+  const obra=document.getElementById('newPObra').value.trim()||'Sem obra';
   if(!name||!pass){notify('⚠️ Nome e senha são obrigatórios!',false);return;}
   if(state.players[name]){notify('⚠️ Participante já existe!',false);return;}
-  state.players[name]={pass};
-  save('players/'+name, {pass});
+  state.players[name]={pass,obra};
+  save('players/'+name, {pass,obra});
   populateLogin();renderAdmPlayers();
-  notify(`✅ ${name} adicionado com senha: ${pass}`);
+  notify(`✅ ${name} adicionado (${obra}) com senha: ${pass}`);
   document.getElementById('newPName').value='';
   document.getElementById('newPPass').value='';
+  document.getElementById('newPObra').value='';
 }
 
 function delPlayer(name){
