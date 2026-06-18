@@ -556,15 +556,21 @@ function save(path, value){
   });
 }
 
+// Conjunto de participantes deletados nesta sessão (impede ressurgir via sync)
+const _deletedPlayers = new Set();
+
 // ── Firebase: listener principal — sincroniza tudo em tempo real ─
 function startFirebaseSync(){
   db.ref(ROOT).on('value', snap => {
     const data = snap.val() || {};
     // Sempre mantém senhas do código; preserva jogadores extras cadastrados via Admin
+    // Ignora participantes marcados como deletados no Firebase ou na sessão atual
+    const deletedInDb = data.deleted ? Object.keys(data.deleted) : [];
     state.players = JSON.parse(JSON.stringify(MASTER_PLAYERS));
     if(data.players){
       Object.entries(data.players).forEach(([name,d])=>{
-        if(!MASTER_PLAYERS[name]) state.players[name]=d;
+        if(!MASTER_PLAYERS[name] && !_deletedPlayers.has(name) && !deletedInDb.includes(name))
+          state.players[name]=d;
       });
     }
     state.guesses      = data.guesses      || {};
@@ -1041,10 +1047,13 @@ function addPlayer(){
   const pass=document.getElementById('newPPass').value.trim();
   const obra=document.getElementById('newPObra').value.trim()||'Sem obra';
   if(!name||!pass){notify('⚠️ Nome e senha são obrigatórios!',false);return;}
-  if(state.players[name]){notify('⚠️ Participante já existe!',false);return;}
+  // Permite re-adicionar participante que havia sido removido (sobrescreve dados antigos)
+  if(state.players[name]&&!confirm(`"${name}" já existe no bolão. Deseja atualizar os dados (obra/senha)?`))return;
   state.players[name]={pass,obra};
+  // Remove da lista de deletados (caso estivesse marcado) e salva no Firebase
+  db.ref(ROOT+'/deleted/'+name).remove();
   db.ref(ROOT+'/players/'+name).set({pass,obra}).then(()=>{
-    notify(`✅ ${name} adicionado (${obra}) com senha: ${pass}`);
+    notify(`✅ ${name} adicionado/atualizado (${obra}) com senha: ${pass}`);
   }).catch(err=>{
     console.error('Erro ao adicionar participante:', err);
     delete state.players[name];
@@ -1057,12 +1066,16 @@ function addPlayer(){
   document.getElementById('newPObra').value='';
 }
 
+
 function delPlayer(name){
   if(!confirm(`Remover ${name} do bolão?`))return;
+  _deletedPlayers.add(name);
   delete state.players[name];
   delete state.guesses[name];
   delete state.specials[name];
   delete state.points[name];
+  // Marca como deletado no Firebase para o sync não recriar automaticamente
+  db.ref(ROOT+'/deleted/'+name).set(true);
   db.ref(ROOT+'/players/'+name).remove();
   db.ref(ROOT+'/guesses/'+name).remove();
   db.ref(ROOT+'/specials/'+name).remove();
