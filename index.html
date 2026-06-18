@@ -537,9 +537,6 @@ const MASTER_PLAYERS={
   'Rony Rymer': {pass:'rymer2026', isAdmin:true, obra:'Escritório'},
 };
 
-// Limpeza única: remove esses jogadores e seus palpites antigos do Firebase
-const OLD_PLAYERS_TO_REMOVE = ['Bruno Linhares','Celso Suckow','Clarissa Miranda','Sandra Mattos'];
-
 // ── Estado global ───────────────────────────────────────────────
 let state = {
   players: JSON.parse(JSON.stringify(MASTER_PLAYERS)),
@@ -553,28 +550,21 @@ let _fbReady = false;
 
 // ── Firebase: salva apenas o caminho específico alterado ─────────
 function save(path, value){
-  db.ref(ROOT+'/'+path).set(value);
+  db.ref(ROOT+'/'+path).set(value).catch(err=>{
+    console.error('Erro ao salvar no Firebase:', path, err);
+    notify('❌ Erro ao salvar! Verifique sua conexão ou as regras do Firebase. ('+err.message+')', false);
+  });
 }
 
 // ── Firebase: listener principal — sincroniza tudo em tempo real ─
 function startFirebaseSync(){
   db.ref(ROOT).on('value', snap => {
     const data = snap.val() || {};
-    // Sempre mantém senhas do código; preserva jogadores extras do Firebase
+    // Sempre mantém senhas do código; preserva jogadores extras cadastrados via Admin
     state.players = JSON.parse(JSON.stringify(MASTER_PLAYERS));
     if(data.players){
       Object.entries(data.players).forEach(([name,d])=>{
-        if(!MASTER_PLAYERS[name]){
-          // Limpeza única: remove jogadores antigos que não fazem mais parte do bolão
-          if(OLD_PLAYERS_TO_REMOVE.includes(name)){
-            db.ref(ROOT+'/players/'+name).remove();
-            db.ref(ROOT+'/guesses/'+name).remove();
-            db.ref(ROOT+'/specials/'+name).remove();
-            db.ref(ROOT+'/points/'+name).remove();
-          } else {
-            state.players[name]=d;
-          }
-        }
+        if(!MASTER_PLAYERS[name]) state.players[name]=d;
       });
     }
     state.guesses      = data.guesses      || {};
@@ -583,12 +573,6 @@ function startFirebaseSync(){
     state.finalResults = data.finalResults || {champion:'',runner:'',third:'',topScorer:''};
     state.points       = data.points       || {};
     state.koTeams      = data.koTeams      || {};
-    // Remove guesses/specials/points órfãos dos jogadores antigos do estado local
-    OLD_PLAYERS_TO_REMOVE.forEach(name=>{
-      delete state.guesses[name];
-      delete state.specials[name];
-      delete state.points[name];
-    });
 
     if(!_fbReady){
       // Primeira carga: inicializa a tela de login
@@ -904,10 +888,9 @@ function renderObrasRanking(){
   const body=document.getElementById('obras-body');
   if(!body)return;
   body.innerHTML='';
-  // Agrupa participantes por obra (exclui admin)
+  // Agrupa todos os participantes por obra (inclui o organizador)
   const obraGroups={};
   Object.keys(state.players).forEach(p=>{
-    if(state.players[p].isAdmin)return;
     const obra=state.players[p].obra||'Sem obra';
     if(!obraGroups[obra])obraGroups[obra]=[];
     obraGroups[obra].push(p);
@@ -1060,9 +1043,15 @@ function addPlayer(){
   if(!name||!pass){notify('⚠️ Nome e senha são obrigatórios!',false);return;}
   if(state.players[name]){notify('⚠️ Participante já existe!',false);return;}
   state.players[name]={pass,obra};
-  save('players/'+name, {pass,obra});
+  db.ref(ROOT+'/players/'+name).set({pass,obra}).then(()=>{
+    notify(`✅ ${name} adicionado (${obra}) com senha: ${pass}`);
+  }).catch(err=>{
+    console.error('Erro ao adicionar participante:', err);
+    delete state.players[name];
+    notify('❌ Falha ao salvar! Verifique as regras do Firebase (Realtime Database → Regras). Erro: '+err.message, false);
+    renderAdmPlayers();
+  });
   populateLogin();renderAdmPlayers();
-  notify(`✅ ${name} adicionado (${obra}) com senha: ${pass}`);
   document.getElementById('newPName').value='';
   document.getElementById('newPPass').value='';
   document.getElementById('newPObra').value='';
