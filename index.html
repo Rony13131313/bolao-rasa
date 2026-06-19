@@ -620,6 +620,43 @@ function save(path, value){
 // Conjunto de participantes deletados nesta sessão (impede ressurgir via sync)
 const _deletedPlayers = new Set();
 
+// Atualiza palpites já confirmados nos cards sem re-renderizar tudo
+// Garante que o usuário não perde o que está digitando quando outro participante salva
+function _syncGuessValues(){
+  if(!currentUser) return;
+  ALL_MATCHES.forEach(m => {
+    const g1el = document.getElementById('g1_'+m.id);
+    const g2el = document.getElementById('g2_'+m.id);
+    if(!g1el || !g2el) return; // card não está na tela
+
+    const locked = isLocked(m);
+    const g = (state.guesses[currentUser]||{})[m.id];
+    const hasG = g && g.g1 !== undefined && g.g1 !== '';
+
+    if(locked || hasG){
+      // Jogo bloqueado ou palpite já confirmado: atualiza o valor com segurança
+      if(hasG){
+        g1el.value = g.g1;
+        g2el.value = g.g2;
+      }
+      // Atualiza o botão/status abaixo do card
+      const btn = g1el.closest('.match-card')?.querySelector('.bet-btn, .saved-ok, .saved-lock');
+      if(btn) {
+        const parent = btn.parentNode;
+        if(locked){
+          if(hasG){
+            parent.innerHTML = `<div class="saved-ok">🔒 Palpite registrado: ${g.g1} × ${g.g2}</div>`;
+          } else {
+            parent.innerHTML = `<div class="saved-lock">🔒 Jogo iniciado — sem palpite (0 pts)</div>`;
+          }
+        }
+      }
+    }
+    // Se o jogo não está bloqueado e não há palpite confirmado: não toca nos campos
+    // (usuário pode estar digitando)
+  });
+}
+
 function renderConta(){
   if(!currentUser) return;
   const p = state.players[currentUser] || {};
@@ -692,7 +729,8 @@ function startFirebaseSync(){
     } else {
       // Atualizações em tempo real enquanto usuário está logado
       if(currentUser){
-        renderMatches();
+        // Atualiza palpites sem re-renderizar os cards — evita apagar o que o usuário está digitando
+        _syncGuessValues();
         if(document.getElementById('sec-classificacao').classList.contains('active')) renderRanking();
         if(document.getElementById('sec-obras')&&document.getElementById('sec-obras').classList.contains('active')) renderObrasRanking();
         if(document.getElementById('sec-admin')&&document.getElementById('sec-admin').classList.contains('active')){
