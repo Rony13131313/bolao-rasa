@@ -424,13 +424,18 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const ROOT = 'bolao_rasa_v6';
 
-const TEAMS=['Argentina','Alemanha','Arábia Saudita','Argélia','Austrália','Áustria','Bélgica','Bósnia-Herzegovina','Brasil','Cabo Verde',
-'Canadá','Catar','Colombia','Coreia do Sul','Costa do Marfim','Croácia','Curaçao','Dinamarca','Egito','Equador',
-'Escócia','Espanha','EUA','França','Gana','Haiti','Holanda','Irã','Iraque','Itália',
-'Japão','Jordânia','Kosovo','Macedônia do Norte','Marrocos','México','Nigeria','Noruega','Nova Zelândia','Panamá',
-'Paraguai','Peru','Portugal','Rep. Tcheca','Romênia','RD Congo','Senegal','Sérvia','Suíça','Tunísia',
-'Turquia','Ucrânia','Uruguai','Uzbequistão','Venezuela','Jamaica','Polônia','Suécia','Albânia','Eslováquia',
-'Irlanda do Norte','País de Gales','Bolívia','Suriname','África do Sul'];
+const TEAMS=[
+  'África do Sul','Alemanha','Arábia Saudita','Argélia','Argentina',
+  'Austrália','Áustria','Bélgica','Bósnia e Herzegovina','Brasil',
+  'Cabo Verde','Canadá','Colômbia','Coreia do Sul','Costa do Marfim',
+  'Croácia','Curaçao','Egito','Equador','Escócia',
+  'Espanha','Estados Unidos','França','Gana','Haiti',
+  'Inglaterra','Irã','Iraque','Japão','Jordânia',
+  'Marrocos','México','Noruega','Nova Zelândia','Países Baixos',
+  'Panamá','Paraguai','Portugal','Qatar','República Checa',
+  'República Democrática do Congo','Senegal','Suécia','Suíça','Tunísia',
+  'Turquia','Uruguai','Uzbequistão'
+];
 
 const ALL_MATCHES=[
   // ── GRUPO A ── México, África do Sul, Coreia do Sul, Tchéquia
@@ -441,12 +446,12 @@ const ALL_MATCHES=[
   {id:'g_a5',t1:'Tchéquia',      t2:'México',        d:'2026-06-24T22:00',ph:'group',gr:'A',city:'Cidade do México'},
   {id:'g_a6',t1:'África do Sul', t2:'Coreia do Sul', d:'2026-06-24T22:00',ph:'group',gr:'A',city:'Monterrey'},
   // ── GRUPO B ── Canadá, Bósnia e Herzegovina, Catar, Suíça
-  {id:'g_b1',t1:'Canadá',          t2:'Bósnia e Herz.',d:'2026-06-12T16:00',ph:'group',gr:'B',city:'Toronto'},
-  {id:'g_b2',t1:'Catar',           t2:'Suíça',         d:'2026-06-13T16:00',ph:'group',gr:'B',city:'San Francisco'},
-  {id:'g_b3',t1:'Suíça',           t2:'Bósnia e Herz.',d:'2026-06-18T16:00',ph:'group',gr:'B',city:'Los Angeles'},
-  {id:'g_b4',t1:'Canadá',          t2:'Catar',         d:'2026-06-18T19:00',ph:'group',gr:'B',city:'Vancouver'},
+  {id:'g_b1',t1:'Canadá',          t2:'Bósnia e Herzegovina',d:'2026-06-12T16:00',ph:'group',gr:'B',city:'Toronto'},
+  {id:'g_b2',t1:'Qatar',           t2:'Suíça',         d:'2026-06-13T16:00',ph:'group',gr:'B',city:'San Francisco'},
+  {id:'g_b3',t1:'Suíça',           t2:'Bósnia e Herzegovina',d:'2026-06-18T16:00',ph:'group',gr:'B',city:'Los Angeles'},
+  {id:'g_b4',t1:'Canadá',          t2:'Qatar',         d:'2026-06-18T19:00',ph:'group',gr:'B',city:'Vancouver'},
   {id:'g_b5',t1:'Suíça',           t2:'Canadá',        d:'2026-06-24T16:00',ph:'group',gr:'B',city:'Vancouver'},
-  {id:'g_b6',t1:'Bósnia e Herz.',  t2:'Catar',         d:'2026-06-24T16:00',ph:'group',gr:'B',city:'Seattle'},
+  {id:'g_b6',t1:'Bósnia e Herzegovina',  t2:'Qatar',         d:'2026-06-24T16:00',ph:'group',gr:'B',city:'Seattle'},
   // ── GRUPO C ── Brasil, Marrocos, Haiti, Escócia
   {id:'g_c1',t1:'Brasil',  t2:'Marrocos', d:'2026-06-13T19:00',ph:'group',gr:'C',city:'Nova York/NJ'},
   {id:'g_c2',t1:'Haiti',   t2:'Escócia',  d:'2026-06-13T22:00',ph:'group',gr:'C',city:'Boston'},
@@ -469,11 +474,11 @@ const ALL_MATCHES=[
   {id:'g_e5',t1:'Equador',         t2:'Alemanha',        d:'2026-06-25T17:00',ph:'group',gr:'E',city:'Nova York/NJ'},
   {id:'g_e6',t1:'Curaçao',         t2:'Costa do Marfim', d:'2026-06-25T17:00',ph:'group',gr:'E',city:'Filadélfia'},
   // ── GRUPO F ── Holanda, Japão, Suécia, Tunísia
-  {id:'g_f1',t1:'Holanda', t2:'Japão',  d:'2026-06-14T17:00',ph:'group',gr:'F',city:'Dallas'},
+  {id:'g_f1',t1:'Países Baixos', t2:'Japão',  d:'2026-06-14T17:00',ph:'group',gr:'F',city:'Dallas'},
   {id:'g_f2',t1:'Suécia',  t2:'Tunísia',d:'2026-06-14T23:00',ph:'group',gr:'F',city:'Monterrey'},
-  {id:'g_f3',t1:'Holanda', t2:'Suécia', d:'2026-06-20T14:00',ph:'group',gr:'F',city:'Houston'},
+  {id:'g_f3',t1:'Países Baixos', t2:'Suécia', d:'2026-06-20T14:00',ph:'group',gr:'F',city:'Houston'},
   {id:'g_f4',t1:'Tunísia', t2:'Japão',  d:'2026-06-21T01:00',ph:'group',gr:'F',city:'Monterrey'},
-  {id:'g_f5',t1:'Tunísia', t2:'Holanda',d:'2026-06-25T20:00',ph:'group',gr:'F',city:'Kansas City'},
+  {id:'g_f5',t1:'Tunísia', t2:'Países Baixos',d:'2026-06-25T20:00',ph:'group',gr:'F',city:'Kansas City'},
   {id:'g_f6',t1:'Japão',   t2:'Suécia', d:'2026-06-25T20:00',ph:'group',gr:'F',city:'Dallas'},
   // ── GRUPO G ── Bélgica, Egito, Irã, Nova Zelândia
   {id:'g_g1',t1:'Bélgica',      t2:'Egito',       d:'2026-06-15T16:00',ph:'group',gr:'G',city:'Seattle'},
@@ -504,12 +509,12 @@ const ALL_MATCHES=[
   {id:'g_j5',t1:'Jordânia', t2:'Argentina',d:'2026-06-27T23:00',ph:'group',gr:'J',city:'Dallas'},
   {id:'g_j6',t1:'Argélia',  t2:'Áustria', d:'2026-06-27T23:00',ph:'group',gr:'J',city:'Kansas City'},
   // ── GRUPO K ── Portugal, RD Congo, Uzbequistão, Colômbia
-  {id:'g_k1',t1:'Portugal',    t2:'RD Congo',    d:'2026-06-17T14:00',ph:'group',gr:'K',city:'Houston'},
+  {id:'g_k1',t1:'Portugal',    t2:'República Democrática do Congo',    d:'2026-06-17T14:00',ph:'group',gr:'K',city:'Houston'},
   {id:'g_k2',t1:'Uzbequistão', t2:'Colômbia',    d:'2026-06-17T23:00',ph:'group',gr:'K',city:'Cidade do México'},
   {id:'g_k3',t1:'Portugal',    t2:'Uzbequistão', d:'2026-06-23T14:00',ph:'group',gr:'K',city:'Houston'},
-  {id:'g_k4',t1:'Colômbia',    t2:'RD Congo',    d:'2026-06-23T23:00',ph:'group',gr:'K',city:'Guadalajara'},
+  {id:'g_k4',t1:'Colômbia',    t2:'República Democrática do Congo',    d:'2026-06-23T23:00',ph:'group',gr:'K',city:'Guadalajara'},
   {id:'g_k5',t1:'Colômbia',    t2:'Portugal',    d:'2026-06-27T20:30',ph:'group',gr:'K',city:'Miami'},
-  {id:'g_k6',t1:'RD Congo',    t2:'Uzbequistão', d:'2026-06-27T20:30',ph:'group',gr:'K',city:'Atlanta'},
+  {id:'g_k6',t1:'República Democrática do Congo',    t2:'Uzbequistão', d:'2026-06-27T20:30',ph:'group',gr:'K',city:'Atlanta'},
   // ── GRUPO L ── Inglaterra, Croácia, Gana, Panamá
   {id:'g_l1',t1:'Inglaterra',t2:'Croácia',  d:'2026-06-17T17:00',ph:'group',gr:'L',city:'Dallas'},
   {id:'g_l2',t1:'Gana',      t2:'Panamá',   d:'2026-06-17T20:00',ph:'group',gr:'L',city:'Toronto'},
@@ -814,19 +819,18 @@ function calcPts(){
 
 // ISO 3166-1 alpha-2 codes — used with flagcdn.com for reliable cross-browser images
 const FLAG_ISO={
-  'México':'mx','África do Sul':'za','Coreia do Sul':'kr','Tchéquia':'cz','Tchequia':'cz',
-  'Canadá':'ca','Catar':'qa','Suíça':'ch','Bósnia e Herz.':'ba','Bósnia e Herzegovina':'ba',
-  'Brasil':'br','Marrocos':'ma','Haiti':'ht','Escócia':'gb-sct',
-  'Estados Unidos':'us','Paraguai':'py','Turquia':'tr','Austrália':'au',
-  'Alemanha':'de','Curaçao':'cw','Costa do Marfim':'ci','Equador':'ec',
-  'Holanda':'nl','Japão':'jp','Suécia':'se','Tunísia':'tn',
-  'Bélgica':'be','Egito':'eg','Irã':'ir','Nova Zelândia':'nz',
-  'Espanha':'es','Cabo Verde':'cv','Arábia Saudita':'sa','Uruguai':'uy',
-  'França':'fr','Senegal':'sn','Iraque':'iq','Noruega':'no',
-  'Argentina':'ar','Argélia':'dz','Áustria':'at','Jordânia':'jo',
-  'Portugal':'pt','Uzbequistão':'uz','RD Congo':'cd','Colômbia':'co',
-  'Inglaterra':'gb-eng','Croácia':'hr','Gana':'gh','Panamá':'pa',
-  'Dinamarca':'dk','Bolívia':'bo',
+  'África do Sul':'za','Alemanha':'de','Arábia Saudita':'sa','Argélia':'dz',
+  'Argentina':'ar','Austrália':'au','Áustria':'at','Bélgica':'be',
+  'Bósnia e Herzegovina':'ba','Brasil':'br','Cabo Verde':'cv','Canadá':'ca',
+  'Colômbia':'co','Coreia do Sul':'kr','Costa do Marfim':'ci','Croácia':'hr',
+  'Curaçao':'cw','Egito':'eg','Equador':'ec','Escócia':'gb-sct',
+  'Espanha':'es','Estados Unidos':'us','França':'fr','Gana':'gh',
+  'Haiti':'ht','Inglaterra':'gb-eng','Irã':'ir','Iraque':'iq',
+  'Japão':'jp','Jordânia':'jo','Marrocos':'ma','México':'mx',
+  'Noruega':'no','Nova Zelândia':'nz','Países Baixos':'nl','Panamá':'pa',
+  'Paraguai':'py','Portugal':'pt','Qatar':'qa','República Checa':'cz',
+  'República Democrática do Congo':'cd','Senegal':'sn','Suécia':'se','Suíça':'ch',
+  'Tunísia':'tn','Turquia':'tr','Uruguai':'uy','Uzbequistão':'uz',
 };
 // Returns an <img> tag using flagcdn.com — works on all browsers including Windows/Chrome
 function flag(t){
@@ -1037,12 +1041,12 @@ const TOP_SCORERS=[
   'Jamal Musiala (Alemanha)',
   'Bruno Fernandes (Portugal)',
   'Ferran Torres (Espanha)',
-  'Cody Gakpo (Holanda)',
+  'Cody Gakpo (Países Baixos)',
   'Alexander Sørloth (Noruega)',
   'Romelu Lukaku (Bélgica)',
   'Jude Bellingham (Inglaterra)',
   'Jhon Arias (Colômbia)',
-  'Memphis Depay (Holanda)',
+  'Memphis Depay (Países Baixos)',
   'Kai Havertz (Alemanha)',
   'Florian Wirtz (Alemanha)',
 ];
