@@ -1011,7 +1011,14 @@ function saveGuess(mid){
   state.guesses[currentUser][mid]={g1:parseInt(g1),g2:parseInt(g2)};
   save('guesses/'+currentUser, state.guesses[currentUser]);
   notify('✅ Palpite salvo!');
-  renderMatches();
+  // Atualiza só o botão do card sem reconstruir a página toda (evita rolar pra cima)
+  const btn = document.getElementById('g1_'+mid)?.closest('.match-card')?.querySelector('.bet-btn');
+  if(btn){
+    btn.textContent = '✅ Palpite confirmado!';
+    btn.disabled = true;
+    btn.style.background = '#065f46';
+    setTimeout(()=>{ btn.textContent='✅ Confirmar Palpite'; btn.disabled=false; btn.style.background=''; }, 1500);
+  }
 }
 
 function renderRanking(){
@@ -1090,8 +1097,8 @@ const TOP_SCORERS=[
   'Florian Wirtz (Alemanha)',
 ];
 
-// Prazo limite para palpites especiais: 19/06/2026 às 16:00 (horário do 1º jogo do dia — EUA x Austrália)
-const ESPECIAIS_DEADLINE = new Date('2026-06-19T16:00:00-03:00');
+// Prazo limite para palpites especiais: 20/06/2026 às 16:00
+const ESPECIAIS_DEADLINE = new Date('2026-06-20T16:00:00-03:00');
 
 function especialisDeadlinePassed(){
   return new Date() > ESPECIAIS_DEADLINE;
@@ -1117,12 +1124,12 @@ function renderEspeciais(){
     const tempo=dias>0?`${dias}d ${horas}h ${mins}min`:`${horas}h ${mins}min`;
     deadlineBanner=`<div style="background:rgba(217,119,6,.12);border:1px solid #d97706;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fde68a;display:flex;align-items:center;gap:8px">
       <span style="font-size:16px">⏰</span>
-      <span>Prazo para confirmar: <strong>19/06 às 16:00 (BRT)</strong> — faltam <strong>${tempo}</strong></span>
+      <span>Prazo para confirmar: <strong>20/06 às 16:00 (BRT)</strong> — faltam <strong>${tempo}</strong></span>
     </div>`;
   } else if(deadlinePassed && !sp.confirmed){
     deadlineBanner=`<div style="background:rgba(220,38,38,.12);border:1px solid #ef4444;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fca5a5;display:flex;align-items:center;gap:8px">
       <span style="font-size:16px">🔒</span>
-      <span>Prazo encerrado em 19/06 às 16:00. Palpites especiais bloqueados.</span>
+      <span>Prazo encerrado em 20/06 às 16:00. Palpites especiais bloqueados.</span>
     </div>`;
   }
 
