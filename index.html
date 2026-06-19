@@ -57,6 +57,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
 .score-inps input{width:48px;height:48px;text-align:center;font-size:22px;font-weight:800;border-radius:10px;border:2px solid var(--border);background:#111827;color:#fff;outline:none;transition:border-color .15s}
 .score-inps input:focus{border-color:#d97706;box-shadow:0 0 0 3px rgba(217,119,6,.15)}
 .score-inps input:disabled{opacity:.4;cursor:not-allowed}
+.score-inps input::placeholder{color:#475569;font-size:18px;font-weight:400}
 .score-sep{font-size:20px;font-weight:700;color:var(--gray)}
 .bet-btn{width:100%;padding:10px;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;transition:opacity .15s}
 .bet-btn:hover{opacity:.88}
@@ -947,9 +948,9 @@ function buildCard(m,userGuesses){
       ${r?`<div class="result-bar">📊 Resultado oficial: <strong>${r.g1} × ${r.g2}</strong>${pts}</div>`:''}
       <div class="score-row">
         <div class="score-inps">
-          <input type="number" min="0" max="20" id="g1_${m.id}" value="${hasG?g.g1:''}" ${locked?'disabled':''} placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+          <input type="number" min="0" max="20" id="g1_${m.id}" value="${hasG?g.g1:''}" ${locked?'disabled':''} placeholder="–" oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
           <span class="score-sep">×</span>
-          <input type="number" min="0" max="20" id="g2_${m.id}" value="${hasG?g.g2:''}" ${locked?'disabled':''} placeholder="0" oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+          <input type="number" min="0" max="20" id="g2_${m.id}" value="${hasG?g.g2:''}" ${locked?'disabled':''} placeholder="–" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
         </div>
       </div>
       ${locked
