@@ -625,6 +625,8 @@ const _deletedPlayers = new Set();
 function _syncGuessValues(){
   if(!currentUser) return;
   ALL_MATCHES.forEach(m => {
+    // Trabalha com cópia para não corromper o array original
+    m = Object.assign({}, m);
     const g1el = document.getElementById('g1_'+m.id);
     const g2el = document.getElementById('g2_'+m.id);
     if(!g1el || !g2el) return; // card não está na tela
@@ -726,6 +728,8 @@ function startFirebaseSync(){
       // Esconde loading, mostra formulário
       document.getElementById('loginLoading').style.display='none';
       document.getElementById('loginForm').style.display='block';
+      // Se o usuário já estava logado (ex: recarregou a página), renderiza agora que o Firebase está pronto
+      if(currentUser) renderMatches();
     } else {
       // Atualizações em tempo real enquanto usuário está logado
       if(currentUser){
@@ -774,7 +778,8 @@ function doLogin(){
     t.onclick=function(){switchTab('admin',this)};
     tabs.appendChild(t);
   }
-  renderMatches();
+  // Só renderiza se o Firebase já carregou; caso contrário o sync vai chamar quando pronto
+  if(_fbReady) renderMatches();
   calcPts();
 }
 
@@ -897,7 +902,9 @@ function renderMatches(){
   const gDiv=document.getElementById('matches-group');
   const kDiv=document.getElementById('matches-knockout');
   gDiv.innerHTML='';kDiv.innerHTML='';
+  // Não renderiza se não há usuário logado ou se o Firebase ainda não carregou
   if(!currentUser)return;
+  if(!_fbReady)return;
 
   const userGuesses=state.guesses[currentUser]||{};
 
@@ -942,10 +949,14 @@ function renderMatches(){
 }
 
 function buildCard(m,userGuesses){
-  // For knockout matches, overlay admin-defined teams if available
+  // Sempre trabalha com uma cópia para não corromper o ALL_MATCHES original
+  m = Object.assign({}, m);
   if(m.ph==='knockout' && state.koTeams && state.koTeams[m.id]){
-    m = Object.assign({}, m, state.koTeams[m.id]);
+    m = Object.assign(m, state.koTeams[m.id]);
   }
+  // Garante que t1 e t2 nunca sejam undefined (protege contra sync parcial)
+  if(!m.t1) m.t1 = '?';
+  if(!m.t2) m.t2 = '?';
   const locked=isLocked(m);
   const g=userGuesses[m.id]||{};
   const hasG=g.g1!==undefined&&g.g1!=='';
