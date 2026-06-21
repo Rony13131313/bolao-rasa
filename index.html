@@ -641,16 +641,13 @@ function _syncGuessValues(){
         g1el.value = g.g1;
         g2el.value = g.g2;
       }
-      // Atualiza o botão/status abaixo do card
-      const btn = g1el.closest('.match-card')?.querySelector('.bet-btn, .saved-ok, .saved-lock');
-      if(btn) {
-        const parent = btn.parentNode;
-        if(locked){
-          if(hasG){
-            parent.innerHTML = `<div class="saved-ok">🔒 Palpite registrado: ${g.g1} × ${g.g2}</div>`;
-          } else {
-            parent.innerHTML = `<div class="saved-lock">🔒 Jogo iniciado — sem palpite (0 pts)</div>`;
-          }
+      // Atualiza apenas o wrapper de status — nunca toca nos times/bandeiras
+      const statusWrap = document.getElementById('status_'+m.id);
+      if(statusWrap && locked){
+        if(hasG){
+          statusWrap.innerHTML = `<div class="saved-ok">🔒 Palpite registrado: ${g.g1} × ${g.g2}</div>`;
+        } else {
+          statusWrap.innerHTML = `<div class="saved-lock">🔒 Jogo iniciado — sem palpite (0 pts)</div>`;
         }
       }
     }
@@ -1002,12 +999,14 @@ function buildCard(m,userGuesses){
           <input type="number" min="0" max="20" id="g2_${m.id}" value="${hasG?g.g2:''}" ${locked?'disabled':''} placeholder="–" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
         </div>
       </div>
-      ${locked
-        ?hasG
-          ?`<div class="saved-ok">🔒 Palpite registrado: ${g.g1} × ${g.g2}</div>`
-          :`<div class="saved-lock">🔒 Jogo iniciado — sem palpite (0 pts)</div>`
-        :`<button class="bet-btn" onclick="saveGuess('${m.id}')">✅ Confirmar Palpite</button>`
-      }
+      <div class="match-status-wrap" id="status_${m.id}">
+        ${locked
+          ?hasG
+            ?`<div class="saved-ok">🔒 Palpite registrado: ${g.g1} × ${g.g2}</div>`
+            :`<div class="saved-lock">🔒 Jogo iniciado — sem palpite (0 pts)</div>`
+          :`<button class="bet-btn" onclick="saveGuess('${m.id}')">✅ Confirmar Palpite</button>`
+        }
+      </div>
     </div>`;
   return card;
 }
@@ -1022,13 +1021,13 @@ function saveGuess(mid){
   state.guesses[currentUser][mid]={g1:parseInt(g1),g2:parseInt(g2)};
   save('guesses/'+currentUser, state.guesses[currentUser]);
   notify('✅ Palpite salvo!');
-  // Atualiza só o botão do card sem reconstruir a página toda (evita rolar pra cima)
-  const btn = document.getElementById('g1_'+mid)?.closest('.match-card')?.querySelector('.bet-btn');
-  if(btn){
-    btn.textContent = '✅ Palpite confirmado!';
-    btn.disabled = true;
-    btn.style.background = '#065f46';
-    setTimeout(()=>{ btn.textContent='✅ Confirmar Palpite'; btn.disabled=false; btn.style.background=''; }, 1500);
+  // Atualiza só o wrapper de status sem reconstruir a página toda (evita rolar pra cima)
+  const statusWrap = document.getElementById('status_'+mid);
+  if(statusWrap){
+    statusWrap.innerHTML = '<div class="saved-ok" style="background:#065f46">✅ Palpite confirmado!</div>';
+    setTimeout(()=>{
+      statusWrap.innerHTML = `<button class="bet-btn" onclick="saveGuess('${mid}')">✅ Confirmar Palpite</button>`;
+    }, 1500);
   }
 }
 
