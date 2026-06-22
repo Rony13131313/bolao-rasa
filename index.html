@@ -1,4 +1,8 @@
 
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;min-height:100vh;font-size:14px}
@@ -411,7 +415,58 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
 </div>
 
 <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+// ── Verificação de nova versão ────────────────────────────────
+const APP_VERSION = '2025.06.21.1';
+const VERSION_KEY = 'bolao_rasa_version';
+
+function checkVersion(){
+  const stored = localStorage.getItem(VERSION_KEY);
+  if(!stored){
+    // Primeira vez — apenas salva
+    localStorage.setItem(VERSION_KEY, APP_VERSION);
+    return;
+  }
+  if(stored !== APP_VERSION){
+    // Nova versão disponível — mostra aviso
+    localStorage.setItem(VERSION_KEY, APP_VERSION);
+    showUpdateBanner();
+  }
+}
+
+function showUpdateBanner(){
+  const banner = document.createElement('div');
+  banner.id = 'update-banner';
+  banner.innerHTML = `
+    <div style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#d97706;color:#111;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.4)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">🆕</span>
+        <div>
+          <div style="font-weight:700;font-size:13px">Nova atualização disponível!</div>
+          <div style="font-size:11px;opacity:.8">Recarregue para ver as novidades.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="location.reload(true)" style="background:#111;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">🔄 Atualizar agora</button>
+        <button onclick="document.getElementById('update-banner').remove()" style="background:rgba(0,0,0,.2);color:#111;border:none;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer">✕</button>
+      </div>
+    </div>`;
+  document.body.appendChild(banner);
+}
+
+// Verifica versão ao carregar e a cada 5 minutos
+checkVersion();
+setInterval(()=>{
+  fetch(location.href + '?v=' + Date.now(), {cache:'no-store'})
+    .then(r => r.text())
+    .then(html => {
+      const match = html.match(/APP_VERSION = '([^']+)'/);
+      if(match && match[1] !== APP_VERSION && !document.getElementById('update-banner')){
+        showUpdateBanner();
+      }
+    }).catch(()=>{});
+}, 5 * 60 * 1000);
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <script>
