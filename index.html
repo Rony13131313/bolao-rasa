@@ -205,7 +205,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
     <div class="sec" id="sec-classificacao">
       <div class="sec-title">Classificação Geral</div>
       <div class="tbl-wrap">
-        <table><thead><tr><th>#</th><th style="text-align:center">Participante</th><th>Jogos</th><th>Especiais</th><th>Total</th></tr></thead>
+        <table><thead><tr><th>#</th><th style="text-align:center">Participante</th><th id="th-ao-vivo" style="display:none"></th><th>Jogos</th><th>Especiais</th><th>Total</th></tr></thead>
         <tbody id="rank-body"></tbody></table>
       </div>
     </div>
@@ -417,7 +417,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
 // ── Verificação de nova versão ────────────────────────────────
-const APP_VERSION = '2025.06.21.1';
+const APP_VERSION = '2025.06.22.1';
 const VERSION_KEY = 'bolao_rasa_version';
 
 function checkVersion(){
@@ -1212,10 +1212,37 @@ function saveGuess(mid){
   }
 }
 
+const VIVO_DELAY_MS = 5 * 60 * 1000; // 5 minutos de segurança após início do jogo
+
+function getJogoAoVivo(){
+  const now = new Date();
+  // Só expõe palpites de jogos que iniciaram há pelo menos 5 minutos
+  // Evita que alguém veja o palpite do outro caso o jogo atrase
+  const iniciados = ALL_MATCHES.filter(m => (now - new Date(m.d)) >= VIVO_DELAY_MS);
+  if(!iniciados.length) return null;
+  iniciados.sort((a,b) => new Date(b.d) - new Date(a.d));
+  return iniciados[0]; // o jogo mais recente que iniciou há 5+ minutos
+}
+
 function renderRanking(){
   calcPts();
   const body=document.getElementById('rank-body');
   body.innerHTML='';
+
+  // Descobre o jogo ao vivo (último que iniciou)
+  const jogoVivo = getJogoAoVivo();
+  const thVivo = document.getElementById('th-ao-vivo');
+
+  if(jogoVivo && thVivo){
+    const mv = Object.assign({}, jogoVivo);
+    if(mv.ph==='knockout' && state.koTeams?.[mv.id]) Object.assign(mv, state.koTeams[mv.id]);
+    const t1 = mv.t1||'?', t2 = mv.t2||'?';
+    thVivo.style.display='';
+    thVivo.innerHTML=`<span style="font-size:10px;font-weight:700;color:#f59e0b">${flag(t1)} ${t1} × ${t2} ${flag(t2)}</span>`;
+  } else if(thVivo){
+    thVivo.style.display='none';
+  }
+
   const sorted=Object.keys(state.players).sort((a,b)=>(state.points[b]?.total||0)-(state.points[a]?.total||0));
   sorted.forEach((p,i)=>{
     const pts=state.points[p]||{m:0,sp:0,total:0};
@@ -1224,7 +1251,29 @@ function renderRanking(){
     const tr=document.createElement('tr');
     const obra=state.players[p]?.obra||'';
     const obraTag=obra&&obra!=='Sem obra'?` <span style="font-size:10px;color:#9ca3af">(${obra})</span>`:'';
-    tr.innerHTML=`<td class="${mc}">${medal}</td><td style="text-align:center">${p}${obraTag}${p===currentUser?' <span style="font-size:10px;color:#d97706">(você)</span>':''}</td><td style="color:rgba(255,255,255,.6)">${pts.m}</td><td style="color:#d97706">${pts.sp}</td><td><span class="pts-pill">${pts.total}</span></td>`;
+
+    // Palpite ao vivo
+    let vivoHtml = '';
+    if(jogoVivo){
+      const g = (state.guesses[p]||{})[jogoVivo.id];
+      const hasG = g && g.g1 !== undefined && g.g1 !== '';
+      const r = state.results[jogoVivo.id];
+      if(hasG){
+        let cor = '#9ca3af'; // neutro
+        if(r){
+          const pts_jogo = scoreGuess(g, r, jogoVivo.ph);
+          cor = pts_jogo >= 10 ? '#10b981' : pts_jogo >= 5 ? '#f59e0b' : '#ef4444';
+          vivoHtml = `<span style="font-weight:700;color:${cor}">${g.g1}×${g.g2}</span>`;
+        } else {
+          vivoHtml = `<span style="color:#9ca3af">${g.g1}×${g.g2}</span>`;
+        }
+      } else {
+        vivoHtml = `<span style="color:#374151;font-size:11px">–</span>`;
+      }
+    }
+
+    const vivoTd = jogoVivo ? `<td style="text-align:center;min-width:54px">${vivoHtml}</td>` : '';
+    tr.innerHTML=`<td class="${mc}">${medal}</td><td style="text-align:center">${p}${obraTag}${p===currentUser?' <span style="font-size:10px;color:#d97706">(você)</span>':''}</td>${vivoTd}<td style="color:rgba(255,255,255,.6)">${pts.m}</td><td style="color:#d97706">${pts.sp}</td><td><span class="pts-pill">${pts.total}</span></td>`;
     body.appendChild(tr);
   });
 }
