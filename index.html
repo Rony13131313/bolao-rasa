@@ -201,7 +201,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
     <div class="sec" id="sec-classificacao">
       <div class="sec-title">Classificação Geral</div>
       <div class="tbl-wrap">
-        <table><thead><tr><th>#</th><th style="text-align:left">Participante</th><th>Jogos</th><th>Especiais</th><th>Total</th></tr></thead>
+        <table><thead><tr><th>#</th><th style="text-align:center">Participante</th><th>Jogos</th><th>Especiais</th><th>Total</th></tr></thead>
         <tbody id="rank-body"></tbody></table>
       </div>
     </div>
@@ -1167,7 +1167,9 @@ function renderRanking(){
     const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1;
     const mc=i===0?'medal-1':i===1?'medal-2':i===2?'medal-3':'';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="${mc}">${medal}</td><td>${p}${p===currentUser?' <span style="font-size:10px;color:#d97706">(você)</span>':''}</td><td style="color:rgba(255,255,255,.6)">${pts.m}</td><td style="color:#d97706">${pts.sp}</td><td><span class="pts-pill">${pts.total}</span></td>`;
+    const obra=state.players[p]?.obra||'';
+    const obraTag=obra&&obra!=='Sem obra'?` <span style="font-size:10px;color:#9ca3af">(${obra})</span>`:'';
+    tr.innerHTML=`<td class="${mc}">${medal}</td><td style="text-align:center">${p}${obraTag}${p===currentUser?' <span style="font-size:10px;color:#d97706">(você)</span>':''}</td><td style="color:rgba(255,255,255,.6)">${pts.m}</td><td style="color:#d97706">${pts.sp}</td><td><span class="pts-pill">${pts.total}</span></td>`;
     body.appendChild(tr);
   });
 }
