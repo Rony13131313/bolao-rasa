@@ -180,7 +180,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
     <button class="logout-btn" onclick="doLogout()">Sair ↩</button>
   </div>
   <div class="tabs" id="tabsBar">
-    <div class="tab active" onclick="switchTab('palpites',this)">⚽ Meus Palpites</div>
+    <div class="tab active" onclick="switchTab('proxima',this)">🔜 Próxima Partida</div>
+    <div class="tab" onclick="switchTab('palpites',this)">⚽ Meus Palpites</div>
     <div class="tab" onclick="switchTab('especiais',this)">🥇 Palpites Especiais</div>
     <div class="tab" onclick="switchTab('classificacao',this)">🏅 Classificação</div>
     <div class="tab" onclick="switchTab('obras',this)">🏗️ Por Obra</div>
@@ -190,7 +191,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
   </div>
   <div class="content">
     <div id="notif" class="notif"></div>
-    <div class="sec active" id="sec-palpites">
+    <div class="sec active" id="sec-proxima">
+      <div id="proxima-content"></div>
+    </div>
+    <div class="sec" id="sec-palpites">
       <div id="matches-group"></div>
       <div id="matches-knockout"></div>
     </div>
@@ -656,6 +660,127 @@ function _syncGuessValues(){
   });
 }
 
+function renderProxima(){
+  if(!currentUser) return;
+  const now = new Date();
+
+  // Sempre mostra o próximo jogo que AINDA NÃO COMEÇOU
+  // Quando um jogo começa, ele sai daqui e o seguinte aparece automaticamente
+  const futuros = ALL_MATCHES.filter(m => new Date(m.d) > now);
+  futuros.sort((a,b) => new Date(a.d) - new Date(b.d));
+  const proximo = futuros[0];
+
+  const wrap = document.getElementById('proxima-content');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  // ── Próximo jogo ──────────────────────────────────────────
+  if(!proximo){
+    wrap.insertAdjacentHTML('beforeend',`
+      <div style="text-align:center;padding:48px 24px;color:#6b7280">
+        <div style="font-size:40px;margin-bottom:12px">🏆</div>
+        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">Copa encerrada!</div>
+        <div style="font-size:13px">Todos os jogos foram realizados.</div>
+      </div>`);
+    return;
+  }
+
+  const m = Object.assign({}, proximo);
+  if(m.ph==='knockout' && state.koTeams?.[m.id]) Object.assign(m, state.koTeams[m.id]);
+  if(!m.t1) m.t1 = '?'; if(!m.t2) m.t2 = '?';
+
+  const g = (state.guesses[currentUser]||{})[m.id]||{};
+  const hasG = g.g1 !== undefined && g.g1 !== '';
+  const locked = isLocked(m);
+
+  // Countdown
+  const diff = new Date(m.d) - now;
+  const hh = Math.floor(diff/3600000);
+  const mm2 = Math.floor((diff%3600000)/60000);
+  let tempoStr = '';
+  if(hh > 48) { tempoStr = `em ${Math.floor(hh/24)} dias`; }
+  else if(hh >= 1) { tempoStr = `em ${hh}h ${mm2}min`; }
+  else { tempoStr = `em ${mm2} minutos`; }
+
+  const phLabel = m.ph==='group' ? `Grupo ${m.gr}` : m.gr;
+  const r = state.results[m.id];
+
+  wrap.insertAdjacentHTML('beforeend', `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="background:rgba(217,119,6,.15);color:#f59e0b;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase">🔜 Próxima Partida</span>
+          <span style="font-size:11px;color:#6b7280">${phLabel}</span>
+        </div>
+        <span style="font-size:11px;color:#f59e0b;font-weight:700">${tempoStr}</span>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;font-size:12px;color:#9ca3af">
+        <span>📅 ${fmtD(m.d).date}</span>
+        <span>·</span>
+        <span>⏰ ${fmtD(m.d).time}</span>
+        <span>·</span>
+        <span>📍 ${m.city||''}</span>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-around;gap:12px;margin:18px 0">
+        <div style="text-align:center;flex:1">
+          <div style="font-size:40px">${flag(m.t1)}</div>
+          <div style="font-size:14px;font-weight:700;color:#fff;margin-top:6px">${m.t1}</div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#475569;background:rgba(255,255,255,.05);padding:8px 14px;border-radius:10px">VS</div>
+        <div style="text-align:center;flex:1">
+          <div style="font-size:40px">${flag(m.t2)}</div>
+          <div style="font-size:14px;font-weight:700;color:#fff;margin-top:6px">${m.t2}</div>
+        </div>
+      </div>
+
+      ${hasG
+        ? `<div style="background:rgba(16,185,129,.08);border:1px solid #10b981;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px">
+             <div style="font-size:11px;color:#34d399;margin-bottom:4px">Seu palpite</div>
+             <div style="font-size:22px;font-weight:800;color:#fff">${g.g1} × ${g.g2}</div>
+             ${locked?'<div style="font-size:11px;color:#6b7280;margin-top:4px">🔒 Bloqueado</div>':'<div style="font-size:11px;color:#f59e0b;margin-top:4px">✏️ Ainda dá pra alterar</div>'}
+           </div>`
+        : `<div style="background:rgba(217,119,6,.08);border:1px dashed #d97706;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px">
+             <div style="font-size:12px;color:#f59e0b">⚠️ Você ainda não fez seu palpite para este jogo!</div>
+           </div>`
+      }
+
+      <div id="proxima-status-${m.id}">
+        ${locked
+          ? `<div class="saved-lock" style="border-radius:10px">🔒 Jogo iniciado — palpites encerrados</div>`
+          : `<div style="display:flex;align-items:center;gap:8px">
+               <input type="number" min="0" max="20" id="prox_g1" value="${hasG?g.g1:''}" placeholder="–"
+                 style="width:52px;height:52px;text-align:center;font-size:22px;font-weight:800;border-radius:10px;border:2px solid var(--border);background:#111827;color:#fff;outline:none"
+                 oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+               <span style="color:#9ca3af;font-size:18px">×</span>
+               <input type="number" min="0" max="20" id="prox_g2" value="${hasG?g.g2:''}" placeholder="–"
+                 style="width:52px;height:52px;text-align:center;font-size:22px;font-weight:800;border-radius:10px;border:2px solid var(--border);background:#111827;color:#fff;outline:none"
+                 oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+               <button onclick="saveGuessProxima('${m.id}')"
+                 style="flex:1;padding:14px;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.4px">
+                 ✅ Confirmar Palpite
+               </button>
+             </div>`
+        }
+      </div>
+    </div>`);
+}
+
+function saveGuessProxima(mid){
+  const g1 = document.getElementById('prox_g1')?.value;
+  const g2 = document.getElementById('prox_g2')?.value;
+  if(g1===''||g2===''){notify('⚠️ Preencha os dois placares!',false);return;}
+  const m = ALL_MATCHES.find(x=>x.id===mid);
+  if(isLocked(m)){notify('❌ Jogo já iniciou!',false);return;}
+  if(!state.guesses[currentUser]) state.guesses[currentUser]={};
+  state.guesses[currentUser][mid]={g1:parseInt(g1),g2:parseInt(g2)};
+  save('guesses/'+currentUser, state.guesses[currentUser]);
+  notify('✅ Palpite salvo!');
+  // Atualiza o card da próxima partida sem rolar a tela
+  renderProxima();
+}
+
 function renderConta(){
   if(!currentUser) return;
   const p = state.players[currentUser] || {};
@@ -776,7 +901,7 @@ function doLogin(){
     tabs.appendChild(t);
   }
   // Só renderiza se o Firebase já carregou; caso contrário o sync vai chamar quando pronto
-  if(_fbReady) renderMatches();
+  if(_fbReady){ renderMatches(); switchTab('proxima', document.querySelector('.tab')); }
   calcPts();
 }
 
@@ -804,6 +929,7 @@ function switchTab(name,el){
   if(name==='especiais')renderEspeciais();
   if(name==='admin'){renderAdmPlayers();populateAdmSelects();}
   if(name==='conta'){renderConta();}
+  if(name==='proxima'){renderProxima();}
 }
 
 function notify(msg,ok=true){
