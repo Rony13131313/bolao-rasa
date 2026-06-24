@@ -205,7 +205,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
     <div class="sec" id="sec-classificacao">
       <div class="sec-title">Classificação Geral</div>
       <div class="tbl-wrap">
-        <table><thead><tr><th>#</th><th style="text-align:center">Participante</th><th id="th-ao-vivo" style="display:none"></th><th>Jogos</th><th>Especiais</th><th>Total</th></tr></thead>
+        <table id="rank-table"><thead id="rank-thead"><tr><th>#</th><th style="text-align:center">Participante</th><th>Jogos</th><th>Especiais</th><th>Total</th></tr></thead>
         <tbody id="rank-body"></tbody></table>
       </div>
     </div>
@@ -417,7 +417,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
 // ── Verificação de nova versão ────────────────────────────────
-const APP_VERSION = '2025.06.22.1';
+const APP_VERSION = '2025.06.22.3';
 const VERSION_KEY = 'bolao_rasa_version';
 
 function checkVersion(){
@@ -715,52 +715,23 @@ function _syncGuessValues(){
   });
 }
 
-function renderProxima(){
-  if(!currentUser) return;
+function _cardProxima(m){
+  // Gera HTML de um card de próxima partida (reutilizado para 1 ou múltiplos jogos)
   const now = new Date();
-
-  // Sempre mostra o próximo jogo que AINDA NÃO COMEÇOU
-  // Quando um jogo começa, ele sai daqui e o seguinte aparece automaticamente
-  const futuros = ALL_MATCHES.filter(m => new Date(m.d) > now);
-  futuros.sort((a,b) => new Date(a.d) - new Date(b.d));
-  const proximo = futuros[0];
-
-  const wrap = document.getElementById('proxima-content');
-  if(!wrap) return;
-  wrap.innerHTML = '';
-
-  // ── Próximo jogo ──────────────────────────────────────────
-  if(!proximo){
-    wrap.insertAdjacentHTML('beforeend',`
-      <div style="text-align:center;padding:48px 24px;color:#6b7280">
-        <div style="font-size:40px;margin-bottom:12px">🏆</div>
-        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">Copa encerrada!</div>
-        <div style="font-size:13px">Todos os jogos foram realizados.</div>
-      </div>`);
-    return;
-  }
-
-  const m = Object.assign({}, proximo);
+  m = Object.assign({}, m);
   if(m.ph==='knockout' && state.koTeams?.[m.id]) Object.assign(m, state.koTeams[m.id]);
   if(!m.t1) m.t1 = '?'; if(!m.t2) m.t2 = '?';
 
   const g = (state.guesses[currentUser]||{})[m.id]||{};
   const hasG = g.g1 !== undefined && g.g1 !== '';
   const locked = isLocked(m);
-
-  // Countdown
   const diff = new Date(m.d) - now;
   const hh = Math.floor(diff/3600000);
   const mm2 = Math.floor((diff%3600000)/60000);
-  let tempoStr = '';
-  if(hh > 48) { tempoStr = `em ${Math.floor(hh/24)} dias`; }
-  else if(hh >= 1) { tempoStr = `em ${hh}h ${mm2}min`; }
-  else { tempoStr = `em ${mm2} minutos`; }
-
+  let tempoStr = hh > 48 ? `em ${Math.floor(hh/24)} dias` : hh >= 1 ? `em ${hh}h ${mm2}min` : `em ${mm2} minutos`;
   const phLabel = m.ph==='group' ? `Grupo ${m.gr}` : m.gr;
-  const r = state.results[m.id];
 
-  wrap.insertAdjacentHTML('beforeend', `
+  return `
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
         <div style="display:flex;align-items:center;gap:8px">
@@ -769,15 +740,11 @@ function renderProxima(){
         </div>
         <span style="font-size:11px;color:#f59e0b;font-weight:700">${tempoStr}</span>
       </div>
-
       <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;font-size:12px;color:#9ca3af">
-        <span>📅 ${fmtD(m.d).date}</span>
-        <span>·</span>
-        <span>⏰ ${fmtD(m.d).time}</span>
-        <span>·</span>
+        <span>📅 ${fmtD(m.d).date}</span><span>·</span>
+        <span>⏰ ${fmtD(m.d).time}</span><span>·</span>
         <span>📍 ${m.city||''}</span>
       </div>
-
       <div style="display:flex;align-items:center;justify-content:space-around;gap:12px;margin:18px 0">
         <div style="text-align:center;flex:1">
           <div style="font-size:40px">${flag(m.t1)}</div>
@@ -789,42 +756,84 @@ function renderProxima(){
           <div style="font-size:14px;font-weight:700;color:#fff;margin-top:6px">${m.t2}</div>
         </div>
       </div>
-
       ${hasG
-        ? `<div style="background:rgba(16,185,129,.08);border:1px solid #10b981;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px">
-             <div style="font-size:11px;color:#34d399;margin-bottom:4px">Seu palpite</div>
-             <div style="font-size:22px;font-weight:800;color:#fff">${g.g1} × ${g.g2}</div>
-             ${locked?'<div style="font-size:11px;color:#6b7280;margin-top:4px">🔒 Bloqueado</div>':'<div style="font-size:11px;color:#f59e0b;margin-top:4px">✏️ Ainda dá pra alterar</div>'}
-           </div>`
-        : `<div style="background:rgba(217,119,6,.08);border:1px dashed #d97706;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px">
-             <div style="font-size:12px;color:#f59e0b">⚠️ Você ainda não fez seu palpite para este jogo!</div>
-           </div>`
+        ?`<div style="background:rgba(16,185,129,.08);border:1px solid #10b981;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px">
+            <div style="font-size:11px;color:#34d399;margin-bottom:4px">Seu palpite</div>
+            <div style="font-size:22px;font-weight:800;color:#fff">${g.g1} × ${g.g2}</div>
+            ${locked?'<div style="font-size:11px;color:#6b7280;margin-top:4px">🔒 Bloqueado</div>':'<div style="font-size:11px;color:#f59e0b;margin-top:4px">✏️ Ainda dá pra alterar</div>'}
+          </div>`
+        :`<div style="background:rgba(217,119,6,.08);border:1px dashed #d97706;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px">
+            <div style="font-size:12px;color:#f59e0b">⚠️ Você ainda não fez seu palpite para este jogo!</div>
+          </div>`
       }
-
       <div id="proxima-status-${m.id}">
         ${locked
-          ? `<div class="saved-lock" style="border-radius:10px">🔒 Jogo iniciado — palpites encerrados</div>`
-          : `<div style="display:flex;align-items:center;gap:8px">
-               <input type="number" min="0" max="20" id="prox_g1" value="${hasG?g.g1:''}" placeholder="–"
-                 style="width:52px;height:52px;text-align:center;font-size:22px;font-weight:800;border-radius:10px;border:2px solid var(--border);background:#111827;color:#fff;outline:none"
-                 oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
-               <span style="color:#9ca3af;font-size:18px">×</span>
-               <input type="number" min="0" max="20" id="prox_g2" value="${hasG?g.g2:''}" placeholder="–"
-                 style="width:52px;height:52px;text-align:center;font-size:22px;font-weight:800;border-radius:10px;border:2px solid var(--border);background:#111827;color:#fff;outline:none"
-                 oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
-               <button onclick="saveGuessProxima('${m.id}')"
-                 style="flex:1;padding:14px;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.4px">
-                 ✅ Confirmar Palpite
-               </button>
-             </div>`
+          ?`<div class="saved-lock" style="border-radius:10px">🔒 Jogo iniciado — palpites encerrados</div>`
+          :`<div style="display:flex;align-items:center;gap:8px">
+              <input type="number" min="0" max="20" id="prox_g1_${m.id}" value="${hasG?g.g1:''}" placeholder="–"
+                style="width:52px;height:52px;text-align:center;font-size:22px;font-weight:800;border-radius:10px;border:2px solid var(--border);background:#111827;color:#fff;outline:none"
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+              <span style="color:#9ca3af;font-size:18px">×</span>
+              <input type="number" min="0" max="20" id="prox_g2_${m.id}" value="${hasG?g.g2:''}" placeholder="–"
+                style="width:52px;height:52px;text-align:center;font-size:22px;font-weight:800;border-radius:10px;border:2px solid var(--border);background:#111827;color:#fff;outline:none"
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')"/>
+              <button onclick="saveGuessProxima('${m.id}')"
+                style="flex:1;padding:14px;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.4px">
+                ✅ Confirmar Palpite
+              </button>
+            </div>`
         }
       </div>
-    </div>`);
+    </div>`;
+}
+
+function renderProxima(){
+  if(!currentUser) return;
+  const now = new Date();
+
+  // Pega todos os jogos futuros e agrupa os do mesmo slot de horário
+  const futuros = ALL_MATCHES.filter(m => new Date(m.d) > now);
+  futuros.sort((a,b) => new Date(a.d) - new Date(b.d));
+
+  const wrap = document.getElementById('proxima-content');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  if(!futuros.length){
+    wrap.insertAdjacentHTML('beforeend',`
+      <div style="text-align:center;padding:48px 24px;color:#6b7280">
+        <div style="font-size:40px;margin-bottom:12px">🏆</div>
+        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">Copa encerrada!</div>
+        <div style="font-size:13px">Todos os jogos foram realizados.</div>
+      </div>`);
+    return;
+  }
+
+  // Agrupa jogos simultâneos (mesmo horário ± 5 min)
+  const primeiroHorario = new Date(futuros[0].d);
+  const slot = futuros.filter(m => Math.abs(new Date(m.d) - primeiroHorario) <= SLOT_TOLERANCE_MS);
+
+  // Se múltiplos simultâneos, mostra badge informativo
+  if(slot.length > 1){
+    const hora = fmtD(slot[0].d).time;
+    const data = fmtD(slot[0].d).date;
+    wrap.insertAdjacentHTML('beforeend',`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 14px;background:rgba(217,119,6,.1);border:1px solid rgba(217,119,6,.3);border-radius:10px">
+        <span style="font-size:16px">⚽</span>
+        <span style="font-size:12px;color:#f59e0b;font-weight:700">${slot.length} jogos simultâneos — ${data} às ${hora}</span>
+      </div>`);
+  }
+
+  // Renderiza um card para cada jogo do slot
+  slot.forEach(m => {
+    wrap.insertAdjacentHTML('beforeend', _cardProxima(m));
+    wrap.insertAdjacentHTML('beforeend', '<div style="height:12px"></div>');
+  });
 }
 
 function saveGuessProxima(mid){
-  const g1 = document.getElementById('prox_g1')?.value;
-  const g2 = document.getElementById('prox_g2')?.value;
+  const g1 = document.getElementById('prox_g1_'+mid)?.value;
+  const g2 = document.getElementById('prox_g2_'+mid)?.value;
   if(g1===''||g2===''){notify('⚠️ Preencha os dois placares!',false);return;}
   const m = ALL_MATCHES.find(x=>x.id===mid);
   if(isLocked(m)){notify('❌ Jogo já iniciou!',false);return;}
@@ -1213,15 +1222,18 @@ function saveGuess(mid){
 }
 
 const VIVO_DELAY_MS = 5 * 60 * 1000; // 5 minutos de segurança após início do jogo
+const SLOT_TOLERANCE_MS = 5 * 60 * 1000; // jogos no mesmo slot se horários diferem < 5 min
 
-function getJogoAoVivo(){
+function getJogosAoVivo(){
   const now = new Date();
-  // Só expõe palpites de jogos que iniciaram há pelo menos 5 minutos
-  // Evita que alguém veja o palpite do outro caso o jogo atrase
+  // Filtra jogos que iniciaram há pelo menos 5 minutos
   const iniciados = ALL_MATCHES.filter(m => (now - new Date(m.d)) >= VIVO_DELAY_MS);
-  if(!iniciados.length) return null;
+  if(!iniciados.length) return [];
+  // Ordena do mais recente ao mais antigo
   iniciados.sort((a,b) => new Date(b.d) - new Date(a.d));
-  return iniciados[0]; // o jogo mais recente que iniciou há 5+ minutos
+  // Pega o horário do jogo mais recente e inclui todos que iniciaram no mesmo slot
+  const maisRecente = new Date(iniciados[0].d);
+  return iniciados.filter(m => Math.abs(new Date(m.d) - maisRecente) <= SLOT_TOLERANCE_MS);
 }
 
 function renderRanking(){
@@ -1229,18 +1241,26 @@ function renderRanking(){
   const body=document.getElementById('rank-body');
   body.innerHTML='';
 
-  // Descobre o jogo ao vivo (último que iniciou)
-  const jogoVivo = getJogoAoVivo();
+  // Suporte a múltiplos jogos simultâneos (ex: última rodada de grupos)
+  const jogosVivo = getJogosAoVivo();
   const thVivo = document.getElementById('th-ao-vivo');
 
-  if(jogoVivo && thVivo){
-    const mv = Object.assign({}, jogoVivo);
-    if(mv.ph==='knockout' && state.koTeams?.[mv.id]) Object.assign(mv, state.koTeams[mv.id]);
-    const t1 = mv.t1||'?', t2 = mv.t2||'?';
-    thVivo.style.display='';
-    thVivo.innerHTML=`<span style="font-size:10px;font-weight:700;color:#f59e0b">${flag(t1)} ${t1} × ${t2} ${flag(t2)}</span>`;
-  } else if(thVivo){
-    thVivo.style.display='none';
+  // Reconstrói o cabeçalho com colunas dinâmicas para cada jogo ao vivo
+  const thead = document.getElementById('rank-thead');
+  if(thead){
+    let thsVivo = '';
+    jogosVivo.forEach(jv => {
+      const mv = Object.assign({}, jv);
+      if(mv.ph==='knockout' && state.koTeams?.[mv.id]) Object.assign(mv, state.koTeams[mv.id]);
+      const t1 = mv.t1||'?', t2 = mv.t2||'?';
+      // Mesmo estilo do jogo único: bandeira pequena + nome dos times
+      thsVivo += `<th style="min-width:80px;white-space:nowrap">
+        <span style="font-size:10px;font-weight:700;color:#f59e0b">
+          ${flag(t1)} ${t1} × ${t2} ${flag(t2)}
+        </span>
+      </th>`;
+    });
+    thead.innerHTML = `<tr><th>#</th><th style="text-align:center">Participante</th>${thsVivo}<th>Jogos</th><th>Especiais</th><th>Total</th></tr>`;
   }
 
   const sorted=Object.keys(state.players).sort((a,b)=>(state.points[b]?.total||0)-(state.points[a]?.total||0));
@@ -1252,28 +1272,31 @@ function renderRanking(){
     const obra=state.players[p]?.obra||'';
     const obraTag=obra&&obra!=='Sem obra'?` <span style="font-size:10px;color:#9ca3af">(${obra})</span>`:'';
 
-    // Palpite ao vivo
-    let vivoHtml = '';
-    if(jogoVivo){
-      const g = (state.guesses[p]||{})[jogoVivo.id];
-      const hasG = g && g.g1 !== undefined && g.g1 !== '';
-      const r = state.results[jogoVivo.id];
-      if(hasG){
-        let cor = '#9ca3af'; // neutro
-        if(r){
-          const pts_jogo = scoreGuess(g, r, jogoVivo.ph);
-          cor = pts_jogo >= 10 ? '#10b981' : pts_jogo >= 5 ? '#f59e0b' : '#ef4444';
-          vivoHtml = `<span style="font-weight:700;color:${cor}">${g.g1}×${g.g2}</span>`;
+    // Palpites ao vivo — um td por jogo simultâneo
+    let vivoTds = '';
+    if(jogosVivo.length){
+      jogosVivo.forEach(jv => {
+        const g = (state.guesses[p]||{})[jv.id];
+        const hasG = g && g.g1 !== undefined && g.g1 !== '';
+        const r = state.results[jv.id];
+        let vivoHtml = '';
+        if(hasG){
+          if(r){
+            const pts_jogo = scoreGuess(g, r, jv.ph);
+            const cor = pts_jogo >= 10 ? '#10b981' : pts_jogo >= 5 ? '#f59e0b' : '#ef4444';
+            vivoHtml = `<span style="font-weight:700;color:${cor}">${g.g1}×${g.g2}</span>`;
+          } else {
+            // Só o placar — bandeira já está no cabeçalho da coluna
+            vivoHtml = `<span style="color:#9ca3af">${g.g1}×${g.g2}</span>`;
+          }
         } else {
-          vivoHtml = `<span style="color:#9ca3af">${g.g1}×${g.g2}</span>`;
+          vivoHtml = `<span style="color:#374151;font-size:11px">–</span>`;
         }
-      } else {
-        vivoHtml = `<span style="color:#374151;font-size:11px">–</span>`;
-      }
+        vivoTds += `<td style="text-align:center;min-width:54px">${vivoHtml}</td>`;
+      });
     }
 
-    const vivoTd = jogoVivo ? `<td style="text-align:center;min-width:54px">${vivoHtml}</td>` : '';
-    tr.innerHTML=`<td class="${mc}">${medal}</td><td style="text-align:center">${p}${obraTag}${p===currentUser?' <span style="font-size:10px;color:#d97706">(você)</span>':''}</td>${vivoTd}<td style="color:rgba(255,255,255,.6)">${pts.m}</td><td style="color:#d97706">${pts.sp}</td><td><span class="pts-pill">${pts.total}</span></td>`;
+    tr.innerHTML=`<td class="${mc}">${medal}</td><td style="text-align:center">${p}${obraTag}${p===currentUser?' <span style="font-size:10px;color:#d97706">(você)</span>':''}</td>${vivoTds}<td style="color:rgba(255,255,255,.6)">${pts.m}</td><td style="color:#d97706">${pts.sp}</td><td><span class="pts-pill">${pts.total}</span></td>`;
     body.appendChild(tr);
   });
 }
