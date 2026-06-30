@@ -417,7 +417,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
 // ── Verificação de nova versão ────────────────────────────────
-const APP_VERSION = '2025.06.22.4';
+const APP_VERSION = '2025.06.22.5';
 const VERSION_KEY = 'bolao_rasa_version';
 
 function checkVersion(){
@@ -798,6 +798,38 @@ function renderProxima(){
   const wrap = document.getElementById('proxima-content');
   if(!wrap) return;
   wrap.innerHTML = '';
+
+  // ── Banner motivacional — fase mata-mata ─────────────────────
+  // Verifica se já estamos na fase mata-mata (algum KO definido ou data >= 29/06)
+  const isMataMatа = ALL_MATCHES.some(m => m.ph==='knockout' && state.koTeams?.[m.id]?.t1)
+    || new Date() >= new Date('2026-06-28T00:00:00-03:00');
+
+  if(isMataMatа){
+    wrap.insertAdjacentHTML('beforeend', `
+      <div style="background:linear-gradient(135deg,rgba(185,28,28,.15),rgba(217,119,6,.12));border:1px solid rgba(217,119,6,.35);border-radius:14px;padding:16px 18px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="font-size:22px">🔥</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fbbf24">FASE MATA-MATA — A Copa está na reta final!</div>
+            <div style="font-size:11px;color:#9ca3af;margin-top:2px">Entre sempre para ver os novos jogos sendo definidos</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:rgba(255,255,255,.85)">
+            <span style="color:#f59e0b;flex-shrink:0">⚽</span>
+            <span>Os confrontos do mata-mata são definidos aos poucos — <strong style="color:#fff">entre todo dia</strong> para não perder nenhum palpite novo!</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:rgba(255,255,255,.85)">
+            <span style="color:#10b981;flex-shrink:0">📈</span>
+            <span>Agora vale <strong style="color:#10b981">mais pontos</strong>: placar exato vale <strong style="color:#fff">15 pts</strong> e acertar o vencedor vale <strong style="color:#fff">8 pts</strong>. Dá pra recuperar!</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:rgba(255,255,255,.85)">
+            <span style="color:#818cf8;flex-shrink:0">🏗️</span>
+            <span>Cada ponto seu também ajuda a <strong style="color:#fff">sua obra a ganhar o prêmio</strong>. Não deixe seus colegas na mão!</span>
+          </div>
+        </div>
+      </div>`);
+  }
 
   if(!futuros.length){
     wrap.insertAdjacentHTML('beforeend',`
