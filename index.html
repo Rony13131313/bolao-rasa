@@ -417,7 +417,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#111827;color:#f0f0f0;mi
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
 // ── Verificação de nova versão ────────────────────────────────
-const APP_VERSION = '2025.06.22.3';
+const APP_VERSION = '2025.06.22.4';
 const VERSION_KEY = 'bolao_rasa_version';
 
 function checkVersion(){
@@ -1500,10 +1500,20 @@ function populateAdmSelects(){
   const sel=document.getElementById('resMatch');
   sel.innerHTML='<option value="">Selecione o jogo...</option>';
   ALL_MATCHES.forEach(m=>{
+    // Para jogos de mata-mata, usa os times reais já definidos pelo admin (koTeams)
+    // em vez do placeholder genérico (ex: "1º Grupo E × 3º Gr...")
+    let t1 = m.t1, t2 = m.t2;
+    if(m.ph==='knockout' && state.koTeams && state.koTeams[m.id]){
+      t1 = state.koTeams[m.id].t1 || m.t1;
+      t2 = state.koTeams[m.id].t2 || m.t2;
+    }
+    // Pula jogos de mata-mata cujos times ainda não foram definidos pelo admin
+    const isPendingKo = m.ph==='knockout' && (!state.koTeams || !state.koTeams[m.id] || !state.koTeams[m.id].t1 || !state.koTeams[m.id].t2);
+    if(isPendingKo) return;
     const o=document.createElement('option');
     o.value=m.id;
     const r=state.results[m.id];
-    o.textContent=`${m.t1} × ${m.t2} (${m.gr})${r?' ✓':''}`;
+    o.textContent=`${t1} × ${t2} (${m.gr})${r?' ✓':''}`;
     sel.appendChild(o);
   });
   const tOpts='<option value="">Selecione...</option>'+TEAMS.map(t=>`<option value="${t}">${t}</option>`).join('');
